@@ -1,0 +1,73 @@
+{% extends 'app_shell.html' %}
+{% from 'partials.html' import status_badge %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="eyebrow">{{ today.strftime('%A, %B %d, %Y') }}</p>
+    <h1 class="text-3xl font-semibold">Today’s medication plan</h1>
+    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Your checklist refreshes every day, so each dose is tracked separately.</p>
+  </div>
+  <div class="flex gap-2">
+    <button id="enableNotifications" class="btn secondary"><i class="fa-solid fa-bell mr-2"></i>Enable reminders</button>
+    <a class="btn primary" href="{{ url_for('main.medications') }}">Add medication</a>
+  </div>
+</div>
+
+<div class="grid gap-4 md:grid-cols-5">
+  {% for label,value in [('Today', logs|length),('Taken', counts.get('Taken',0)),('Due now', counts.get('Due Now',0)),('Missed', counts.get('Missed',0)),('Progress', progress ~ '%')] %}
+  <div class="card">
+    <p class="text-sm text-slate-500">{{ label }}</p>
+    <p class="mt-2 text-2xl font-semibold">{{ value }}</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% if next_dose %}
+<div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide">Next attention</p>
+      <p class="mt-1">{{ next_dose.medicine_name }} · {{ next_dose.dosage }} at {{ next_dose.scheduled_time }}</p>
+    </div>
+    {{ status_badge(next_dose.status) }}
+  </div>
+</div>
+{% endif %}
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+  <div class="card lg:col-span-2">
+    <h2 class="section-title">Today’s checklist</h2>
+    <div class="mt-4 divide-y dark:divide-slate-800">
+      {% for log in logs %}
+      <div class="flex flex-wrap items-center justify-between gap-3 py-3" data-dose-id="{{ log.id }}" data-dose-time="{{ log.scheduled_time }}" data-dose-status="{{ log.status }}">
+        <div>
+          <p class="font-medium">{{ log.medicine_name }} <span class="text-sm font-normal text-slate-500">{{ log.dosage }}</span></p>
+          <p class="text-sm text-slate-500">Scheduled at {{ log.scheduled_time }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          {{ status_badge(log.status) }}
+          {% if log.status not in ['Taken', 'Missed'] %}
+          <form method="post" action="{{ url_for('main.set_dose_status', log_id=log.id, status='taken') }}"><button class="mini success">Taken</button></form>
+          <form method="post" action="{{ url_for('main.set_dose_status', log_id=log.id, status='missed') }}"><button class="mini danger">Missed</button></form>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <div class="py-10 text-center text-slate-500">No doses are scheduled for today.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="section-title">Daily progress</h2>
+    <div class="mt-5 h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-full bg-brand-600" style="width:{{ progress }}%"></div></div>
+    <p class="mt-3 text-sm text-slate-500">{{ progress }}% of today’s doses are complete.</p>
+    <h3 class="mt-6 text-sm font-semibold">Recent activity</h3>
+    <div class="mt-3 space-y-3">
+      {% for item in recent %}
+      <p class="text-sm"><span class="text-slate-500">{{ item.log_date.strftime('%b %d') }}</span> · {{ item.medicine_name }} {{ status_badge(item.status) }}</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

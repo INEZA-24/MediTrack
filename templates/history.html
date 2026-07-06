@@ -1,0 +1,32 @@
+{% extends 'app_shell.html' %}
+{% from 'partials.html' import status_badge %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-semibold">Dose history</h1>
+    <p class="mt-2 text-sm text-slate-500">Every daily checklist action is stored here for adherence tracking.</p>
+  </div>
+  <form class="flex flex-wrap gap-2">
+    <input name="q" value="{{ q }}" placeholder="Search medicine">
+    <select name="status">
+      <option value="">All statuses</option>
+      {% for s in ['Upcoming','Due Now','Taken','Missed'] %}
+      <option value="{{ s }}" {% if selected_status==s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn secondary">Filter</button>
+  </form>
+</div>
+<div class="card mt-6 overflow-x-auto">
+  <table class="w-full text-left text-sm">
+    <thead class="text-slate-500"><tr><th>Date</th><th>Medicine</th><th>Dosage</th><th>Time</th><th>Status</th></tr></thead>
+    <tbody class="divide-y dark:divide-slate-800">
+      {% for log in logs %}
+      <tr><td>{{ log.log_date.strftime('%b %d, %Y') }}</td><td>{{ log.medicine_name }}</td><td>{{ log.dosage }}</td><td>{{ log.scheduled_time }}</td><td>{{ status_badge(log.status) }}</td></tr>
+      {% else %}
+      <tr><td colspan="5" class="py-8 text-center text-slate-500">No records match your filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% macro logo() -%}
+<a href="{{ url_for('main.landing') }}" class="flex items-center gap-2 font-semibold tracking-tight"><span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 text-white"><i class="fa-solid fa-heart-pulse text-sm"></i></span><span>MediTrack</span></a>
+{%- endmacro %}
+{% macro status_badge(status) -%}
+<span class="badge {{ status|lower|replace(' ', '-') }}">{{ status }}</span>
+{%- endmacro %}
